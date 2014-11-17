@@ -1,0 +1,27 @@
+{
+  "name": "mongorepo",
+  "version": "0.1.0",
+  "description": "A simple repository over MongoDB collection",
+  "private": true,
+  "main": "app.js",
+  "scripts": {
+    "test": "mocha -R spec"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@bitbucket.org:vacationroost/mongorepo.git"
+  },
+  "author": "Phillip Clark <phillip@flitbit.com>",
+  "dependencies": {
+    "deep-diff": "^0.2.0",
+    "assert-plus": "^0.1.5",
+    "json-ptr": "^0.2.0",
+    "mongodb": "^1.4.19",
+    "moment": "^2.8.3"
+  },
+  "devDependencies": {
+    "mocha": "^2.0.1",
+    "expect.js": "^0.3.1",
+    "node-uuid": "^1.4.1"
+  }
+}
