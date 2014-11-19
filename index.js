@@ -7,6 +7,11 @@ var deep = require('deep-diff');
 var moment = require('moment');
 var JsonPointer = require('json-ptr');
 var format = util.format;
+var CreatedEventData = require('./lib/created');
+var BatchCreatedEventData = require('./lib/batch-created');
+var UpdatedEventData = require('./lib/updated');
+var FetchedEventData = require('./lib/fetched');
+var DeletedEventData = require('./lib/deleted');
 
 function prepareJsonPointers(pointers) {
   if (pointers && pointers.length) {
@@ -83,19 +88,31 @@ function MongoRepo(db, options) {
   /**
    * Fired when a model is created on the data store.
    *
-   * @event MongoRepo#created
-   * @type {object}
-   * @property {string} id - The newly created model's identity on the data store.
-   * @property {object} model - The domain model.
+   * @event MongoRepo~created
+   * @type {CreatedEventData|BatchCreatedEventData}
+   */
+  /**
+   * Fired when a model is updated on the data store.
+   *
+   * @event MongoRepo#updated
+   * @type {UpdatedEventData}
+   *
+   */
+  /**
+   * Fired when a model is deleted from the data store.
+   *
+   * @event MongoRepo#deleted
+   * @type {DeletedEventData}
    *
    */
   /**
    * Fired when a model is fetched from the data store.
    *
    * @event MongoRepo#fetched
-   * @type {object}
+   * @type {FetchedEventData}
    *
    */
+
   var _idOp;
 
   var _timestampOnCreate = prepareJsonPointers(options.timestampOnCreate);
@@ -231,11 +248,13 @@ Object.defineProperties(MongoRepo.prototype, {
   _transformData: {
     /**
      * Used by the repository to transforms a data model retrieved from underlying mongodb into a domain model.
+     * The default implementation returns the model as-is.
      * @function _transformData
      * @param {object} data The data model.
      * @return {object} The domain model.
      *
      * @memberOf MongoRepo
+     * @instance
      */
     value: function _transformData(data) {
       return data;
@@ -247,11 +266,13 @@ Object.defineProperties(MongoRepo.prototype, {
   _transformModel: {
     /**
      * Used by the repository to transform a domain model into the representation stored in data (data model).
+     * The default implementation returns the model as-is.
      * @function _transformModel
      * @param {object} model The domain model.
      * @return {object} The data model.
      *
      * @memberOf MongoRepo
+     * @instance
      */
     value: function _transformModel(model) {
       return model;
@@ -268,6 +289,7 @@ Object.defineProperties(MongoRepo.prototype, {
      * @return {object} The data model.
      *
      * @memberOf MongoRepo
+     * @instance
      */
     value: function _beforeCreateDataModel(data) {
       var pointers = this._timestampOnCreate;
@@ -288,6 +310,7 @@ Object.defineProperties(MongoRepo.prototype, {
      * @return {object} The data model.
      *
      * @memberOf MongoRepo
+     * @instance
      */
     value: function _beforeUpdateDataModel(data) {
       var pointers = this._timestampOnUpdate;
@@ -303,12 +326,14 @@ Object.defineProperties(MongoRepo.prototype, {
   _makeUpdateSet: {
     /**
      * Callback method invoked by the repository to calculate the updates to be pushed to the underlying mongodb; enables subclass manipulation of the data right before being stored.
+     * The default implementation makes an update set that uses the Mongo Native Client's $set syntax. It constructs an object that contains instructions that send only the differences to the server.
      * @function _makeUpdateSet
      * @param {object} orig The data model as recently fetched from the backend mongodb.
      * @param {object} updated The (potentially) updated data model.
      * @return {object} An update set.
      *
      * @memberOf MongoRepo
+     * @instance
      */
     value: function _makeUpdateSet(orig, updated) {
       var changes = [];
@@ -350,6 +375,7 @@ Object.defineProperties(MongoRepo.prototype, {
      * @return undefined
      *
      * @memberOf MongoRepo
+     * @instance
      */
     get: function get_objectNotFound() {
       var self = this;
@@ -369,6 +395,7 @@ Object.defineProperties(MongoRepo.prototype, {
      * @return undefined
      *
      * @memberOf MongoRepo
+     * @instance
      */
     get: function get_objectNotFoundOnUpdate() {
       var self = this;
@@ -382,12 +409,14 @@ Object.defineProperties(MongoRepo.prototype, {
   validate: {
     /**
      * Callback method invoked by the repository before storing a model ({@link MongoRepo#create} and {@link MongoRepo#update}).
+     * The default implementation does not perform validation.
      * @function validate
      * @param {object} model The domain model being stored.
      * @param {function(object,object):undefined} callback The callback where errors or results are returned to the caller.
      * @return undefined
      *
      * @memberOf MongoRepo
+     * @instance
      */
     value: function validate(model, callback) {
       callback();
@@ -404,6 +433,7 @@ Object.defineProperties(MongoRepo.prototype, {
      * @return {object} The error, translated for the caller.
      *
      * @memberOf MongoRepo
+     * @instance
      */
     value: function translateDbError(err) {
       var msg = (typeof err === 'string') ? err : err.message;
@@ -418,6 +448,17 @@ Object.defineProperties(MongoRepo.prototype, {
   },
 
   getById: {
+    /**
+     * Gets a model from the the repository by the model's Id.
+     * @function getById
+     * @param {string} id The model's identity.
+     * @param {function(object,object):undefined} callback The callback where an error or the model is returned to the caller.
+     * @return undefined
+     * @fires fetched
+     *
+     * @memberOf MongoRepo
+     * @instance
+     */
     value: function getById(id, callback) {
       assert.string(id, 'id');
       var self = this;
@@ -427,7 +468,7 @@ Object.defineProperties(MongoRepo.prototype, {
           return self._objectNotFound(id, callback);
         }
         var model = self._transformData(data);
-        self.emit('fetched', {id: id, model: model});
+        self.emit('fetched', new FetchedEventData(id, model));
         callback(null, model);
       });
     },
@@ -436,7 +477,19 @@ Object.defineProperties(MongoRepo.prototype, {
   },
 
   findMatch: {
-    value: function find(match, callback) {
+    /**
+     * Finds objects matching the specified query. This method is a raw pass-through to the underlying driver. Upon success,
+     * a stream is returned to the caller via callback. The stream's `data` event must be observed in order to read the resulting
+     * raw data that satisfies the query. Streaming is complete when the `end` event is fired.
+     * @function findMatch
+     * @param {object} match A mongo native client `find` specification.
+     * @param {function(object,object):undefined} callback The callback where an error or the stream is returned to the caller.
+     * @return undefined
+     *
+     * @memberOf MongoRepo
+     * @instance
+     */
+    value: function findMatch(match, callback) {
       assert.object(match, 'match');
       var self = this;
       try {
@@ -472,7 +525,7 @@ Object.defineProperties(MongoRepo.prototype, {
         self._collection.insert(data, {w: 1}, function (err, res) {
           if (err) { return callback(self.translateDbError(err)); }
           var model = self._transformData(res[0]);
-          self.emit('created', { id: model.referenceId, model: model});
+          self.emit('created', new CreatedEventData(self._dataIdFromModel(model), model));
           callback(null, model);
         });
       });
@@ -482,6 +535,17 @@ Object.defineProperties(MongoRepo.prototype, {
   },
 
   batchCreate: {
+    /**
+     * Creates the privided models on the underlying storage as a batch.
+     * @method batchCreate
+     * @param {object[]} models The domain models supplying data to be stored.
+     * @param {function} callback A callback function invoked by the repository when the operation completes.
+     * @return undefined
+     * @fires MongoRepo#created
+     *
+     * @memberOf MongoRepo
+     * @instance
+     */
     value: function create(models, callback) {
       assert.arrayOfObject(models, 'models');
       var self = this
@@ -505,12 +569,20 @@ Object.defineProperties(MongoRepo.prototype, {
               if (err) { return callback(self.translateDbError(err)); }
               var j = -1
               , jlen = res.length
+              , model
+              , created = []
+              , evt = []
               ;
               while (++j < jlen) {
-                res[j] = self._transformData(res[j]);
+                model = self._transformData(res[i]);
+                created.push(model);
+                evt.push(new CreatedEventData(
+                  self._dataIdFromModel(model),
+                  model
+                  ));
               }
-              self.emit('created', { models: res});
-              callback(null, res);
+              self.emit('created', new BatchCreatedEventData(evt));
+              callback(null, created);
             });
           }
         }
@@ -525,6 +597,17 @@ Object.defineProperties(MongoRepo.prototype, {
   },
 
   update: {
+    /**
+     * Updates an existing model on the underlying storage.
+     * @method update
+     * @param {object} model The domain model providing the updates.
+     * @param {function} callback A callback function invoked by the repository when the operation completes.
+     * @return undefined
+     * @fires MongoRepo#updated
+     *
+     * @memberOf MongoRepo
+     * @instance
+     */
     value: function update(model, callback) {
       assert.object(model, 'model');
       var self = this;
@@ -547,13 +630,14 @@ Object.defineProperties(MongoRepo.prototype, {
               setValueForAllPointers(timestamps, self._timestampOnUpdate, true);
               changes.$currentDate = timestamps;
             }
+            // allow sub-classes to modify the update set...
             if (self._afterMakeUpdateSet) {
               changes = self._afterMakeUpdateSet(data, updated, changes);
             }
             self._collection.update(idRef, changes, function (err, res) {
               if (err) { return callback(self.translateDbError(err)); }
               if (res) {
-                self.emit('updated', { _id: id, changes: changes });
+                self.emit('updated', new UpdatedEventData(id, changes, res));
                 callback(null, res);
               } else {
                 self._objectNotFoundOnUpdate(model, callback);
@@ -570,6 +654,17 @@ Object.defineProperties(MongoRepo.prototype, {
   },
 
   del: {
+    /**
+     * Deletes a model from the underlying storage.
+     * @method del
+     * @param {string} id The model's identity.
+     * @param {function} callback A callback function invoked by the repository when the operation completes.
+     * @return undefined
+     * @fires MongoRepo#deleted
+     *
+     * @memberOf MongoRepo
+     * @instance
+     */
     value: function del(id, callback) {
       assert.string(id, 'id');
       var self = this;
@@ -585,6 +680,17 @@ Object.defineProperties(MongoRepo.prototype, {
   },
 
   delMatch: {
+    /**
+     * Deletes models matching the specified query.
+     * @method delMatch
+     * @param {string} match A mongo native client `del` specification.
+     * @param {function} callback A callback function invoked by the repository when the operation completes.
+     * @return undefined
+     * @fires MongoRepo#deleted
+     *
+     * @memberOf MongoRepo
+     * @instance
+     */
     value: function del(match, callback) {
       assert.object(match, 'match');
       var self = this;

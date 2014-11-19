@@ -31,3 +31,17 @@ npm link mongorepo
 
 There is a document tree under the `docs` folder, its a work in progress.
 
+Docs are built from source code comments using [jsdoc](http://usejsdoc.org/).
+
+If you'll be (re)building the docs, install jsdoc globally on your machine:
+
+```bash
+npm install -g jsdoc
+```
+
+The `Makefile` in the package's root directory contains a `docs` target.
+
+```bash
+make docs
+```
+
