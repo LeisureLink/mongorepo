@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@bitbucket.org:vacationroost/mongorepo.git"
+    "url": "git+ssh://git@github.com:vacationroost/mongorepo.git"
   },
   "author": "Phillip Clark <phillip@flitbit.com>",
   "dependencies": {
