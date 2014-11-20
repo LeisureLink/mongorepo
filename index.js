@@ -1,4 +1,5 @@
-/*jshint indent:2, laxcomma:true, nomen:false*/
+'use strict';
+
 /* This file's documentation is compiled with JsDoc. */
 var util = require('util');
 var events = require('events');
@@ -12,13 +13,13 @@ var BatchCreatedEventData = require('./lib/batch-created');
 var UpdatedEventData = require('./lib/updated');
 var FetchedEventData = require('./lib/fetched');
 var DeletedEventData = require('./lib/deleted');
+var ModelTransformStream = require('./lib/transform-stream');
 
 function prepareJsonPointers(pointers) {
   if (pointers && pointers.length) {
-    var res = []
-    , i = -1
-    , len = pointers.length
-    ;
+    var res = [],
+      i = -1,
+      len = pointers.length;
     while (++i < len) {
       if (typeof pointers[i] === 'string') {
         res.push(JsonPointer.create(pointers[i]));
@@ -34,9 +35,8 @@ function prepareJsonPointers(pointers) {
 
 function setValueForAllPointers(obj, pointers, val) {
   if (pointers && pointers.length) {
-    var i = -1
-    , len = pointers.length
-    ;
+    var i = -1,
+      len = pointers.length;
     while (++i < len) {
       pointers[i].set(obj, val);
     }
@@ -126,7 +126,9 @@ function MongoRepo(db, options) {
      * @memberOf MongoRepo
      * @instance
      */
-    _descriptiveName: { value: options.descriptiveName || 'Domain model' },
+    _descriptiveName: {
+      value: options.descriptiveName || 'Domain model'
+    },
 
     /**
      * The {@link identityAccessor} used by the repository to get the specified domain model's `identity`.
@@ -135,7 +137,9 @@ function MongoRepo(db, options) {
      * @instance
      */
     _dataIdFromModel: {
-      get: function get_dataIdFromModel() { return _idOp; },
+      get: function get_dataIdFromModel() {
+        return _idOp;
+      },
       set: function set_dataIdFromModel(accessor) {
         assert.func(accessor);
         _idOp = accessor;
@@ -156,7 +160,7 @@ function MongoRepo(db, options) {
        */
       value: function _makeModelIdAccessorForPropertyName(name) {
         assert.string(name);
-        _idOp = function (model) {
+        _idOp = function(model) {
           if (model) {
             return model[name];
           }
@@ -172,8 +176,10 @@ function MongoRepo(db, options) {
      * @instance
      */
     _timestampOnCreate: {
-      get: function () { return _timestampOnCreate; },
-      set: function (val) {
+      get: function() {
+        return _timestampOnCreate;
+      },
+      set: function(val) {
         assert.arrayOfString(val, '_timestampOnCreate');
         _timestampOnCreate = prepareJsonPointers(val);
       },
@@ -187,8 +193,10 @@ function MongoRepo(db, options) {
      * @instance
      */
     _timestampOnUpdate: {
-      get: function () { return _timestampOnUpdate; },
-      set: function (val) {
+      get: function() {
+        return _timestampOnUpdate;
+      },
+      set: function(val) {
         assert.arrayOfString(val, '_timestampOnUpdate');
         _timestampOnUpdate = prepareJsonPointers(val);
       },
@@ -201,7 +209,9 @@ function MongoRepo(db, options) {
      * @memberOf MongoRepo
      * @instance
      */
-    _db: { value: db },
+    _db: {
+      value: db
+    },
 
     /**
      * The name of the repository's data collection on the MongoDB backend.
@@ -209,7 +219,9 @@ function MongoRepo(db, options) {
      * @memberOf MongoRepo
      * @instance
      */
-    _namespace: { value: options.collection },
+    _namespace: {
+      value: options.collection
+    },
 
     /**
      * The mongodb collection underlying the repository's operations.
@@ -217,7 +229,9 @@ function MongoRepo(db, options) {
      * @memberOf MongoRepo
      * @instance
      */
-    _collection: { value: db.collection(options.collection) }
+    _collection: {
+      value: db.collection(options.collection)
+    }
 
   });
 
@@ -338,28 +352,35 @@ Object.defineProperties(MongoRepo.prototype, {
     value: function _makeUpdateSet(orig, updated) {
       var changes = [];
       deep.observableDiff(orig, updated,
-        function (change) { changes.push(change); },
+        function(change) {
+          changes.push(change);
+        },
         this._filterUpdatedProperties.bind(this)
-        );
-      var edited
-      , removed
-      , i = -1
-      , len = changes.length
-      ;
+      );
+      var edited, removed, i = -1,
+        len = changes.length;
       if (len) {
         while (++i < len) {
           if (changes[i].kind === 'E' || changes[i].kind === 'N') {
-            if (!edited) { edited = {}; }
+            if (!edited) {
+              edited = {};
+            }
             edited[changes[i].path.join('.')] = changes[i].rhs;
           } else {
-            if (!removed) { removed = {}; }
+            if (!removed) {
+              removed = {};
+            }
             removed[changes[i].path.join('.')] = 1;
           }
         }
       }
       var res = {};
-      if (edited) { res.$set = edited; }
-      if (removed) { res.$unset = removed; }
+      if (edited) {
+        res.$set = edited;
+      }
+      if (removed) {
+        res.$unset = removed;
+      }
       return res;
     },
     enumerable: true,
@@ -462,8 +483,12 @@ Object.defineProperties(MongoRepo.prototype, {
     value: function getById(id, callback) {
       assert.string(id, 'id');
       var self = this;
-      this._collection.findOne({_id: id}, function (err, data) {
-        if (err) { return callback(err); }
+      this._collection.findOne({
+        _id: id
+      }, function(err, data) {
+        if (err) {
+          return callback(err);
+        }
         if (data === null) {
           return self._objectNotFound(id, callback);
         }
@@ -493,7 +518,10 @@ Object.defineProperties(MongoRepo.prototype, {
       assert.object(match, 'match');
       var self = this;
       try {
-        callback(null, this._collection.find(match));
+        var source = this._collection.find(match).stream();
+        var modelTransform = new ModelTransformStream(this._transformData.bind(this));
+        source.pipe(modelTransform);
+        callback(null, modelTransform);
       } catch (err) {
         callback(err);
       }
@@ -518,12 +546,18 @@ Object.defineProperties(MongoRepo.prototype, {
       assert.object(model, 'model');
       var self = this;
       this.validate(model, function postValidateCreate(err) {
-        if (err) { return callback(err); }
+        if (err) {
+          return callback(err);
+        }
         var data = self._transformModel(model);
         data = self._beforeCreateDataModel(data);
 
-        self._collection.insert(data, {w: 1}, function (err, res) {
-          if (err) { return callback(self.translateDbError(err)); }
+        self._collection.insert(data, {
+          w: 1
+        }, function(err, res) {
+          if (err) {
+            return callback(self.translateDbError(err));
+          }
           var model = self._transformData(res[0]);
           self.emit('created', new CreatedEventData(self._dataIdFromModel(model), model));
           callback(null, model);
@@ -548,16 +582,20 @@ Object.defineProperties(MongoRepo.prototype, {
      */
     value: function create(models, callback) {
       assert.arrayOfObject(models, 'models');
-      var self = this
-      , i = -1
-      , len = models.length
-      , last = len - 1
-      , count = 0
-      , invalid = []
-      , valid = []
-      , ea = function (index, model, err) {
+      var self = this,
+        i = -1,
+        len = models.length,
+        last = len - 1,
+        count = 0,
+        invalid = [],
+        valid = [],
+        ea = function(index, model, err) {
           if (err) {
-            invalid.push({index: index, model: models[index], error: err});
+            invalid.push({
+              index: index,
+              model: models[index],
+              error: err
+            });
           } else {
             valid.push(self._transformModel(models[index]));
           }
@@ -565,28 +603,29 @@ Object.defineProperties(MongoRepo.prototype, {
             if (invalid.length) {
               return callback(invalid);
             }
-            self._collection.insert(valid, {w: 1}, function (err, res) {
-              if (err) { return callback(self.translateDbError(err)); }
-              var j = -1
-              , jlen = res.length
-              , model
-              , created = []
-              , evt = []
-              ;
+            self._collection.insert(valid, {
+              w: 1
+            }, function(err, res) {
+              if (err) {
+                return callback(self.translateDbError(err));
+              }
+              var j = -1,
+                jlen = res.length,
+                model, created = [],
+                evt = [];
               while (++j < jlen) {
                 model = self._transformData(res[i]);
                 created.push(model);
                 evt.push(new CreatedEventData(
                   self._dataIdFromModel(model),
                   model
-                  ));
+                ));
               }
               self.emit('created', new BatchCreatedEventData(evt));
               callback(null, created);
             });
           }
-        }
-      ;
+        };
 
       while (++i < len) {
         this.validate(models[i], ea.bind(this, i, models[i]));
@@ -612,13 +651,19 @@ Object.defineProperties(MongoRepo.prototype, {
       assert.object(model, 'model');
       var self = this;
       this.validate(model, function postValidateUpdate(err) {
-        if (err) { return callback(err); }
+        if (err) {
+          return callback(err);
+        }
 
         var updated = self._transformModel(model);
         var id = self._dataIdFromModel(model);
-        var idRef = { _id: id };
-        self._collection.findOne(idRef, function (err, data) {
-          if (err) { return callback(self.translateDbError(err)); }
+        var idRef = {
+          _id: id
+        };
+        self._collection.findOne(idRef, function(err, data) {
+          if (err) {
+            return callback(self.translateDbError(err));
+          }
           if (data === null) {
             return self._objectNotFoundOnUpdate(model, callback);
           }
@@ -634,8 +679,10 @@ Object.defineProperties(MongoRepo.prototype, {
             if (self._afterMakeUpdateSet) {
               changes = self._afterMakeUpdateSet(data, updated, changes);
             }
-            self._collection.update(idRef, changes, function (err, res) {
-              if (err) { return callback(self.translateDbError(err)); }
+            self._collection.update(idRef, changes, function(err, res) {
+              if (err) {
+                return callback(self.translateDbError(err));
+              }
               if (res) {
                 self.emit('updated', new UpdatedEventData(id, changes, res));
                 callback(null, res);
@@ -668,8 +715,14 @@ Object.defineProperties(MongoRepo.prototype, {
     value: function del(id, callback) {
       assert.string(id, 'id');
       var self = this;
-      self._collection.remove({_id: id}, {w: 1}, function (err, res) {
-        if (err) { return callback(self.translateDbError(err)); }
+      self._collection.remove({
+        _id: id
+      }, {
+        w: 1
+      }, function(err, res) {
+        if (err) {
+          return callback(self.translateDbError(err));
+        }
         if (res) {
           self.emit('deleted', id);
         }
@@ -694,10 +747,17 @@ Object.defineProperties(MongoRepo.prototype, {
     value: function del(match, callback) {
       assert.object(match, 'match');
       var self = this;
-      self._collection.remove(match, {w: 1}, function (err, res) {
-        if (err) { return callback(self.translateDbError(err)); }
+      self._collection.remove(match, {
+        w: 1
+      }, function(err, res) {
+        if (err) {
+          return callback(self.translateDbError(err));
+        }
         if (res) {
-          self.emit('deleted', { match: match, count: res });
+          self.emit('deleted', {
+            match: match,
+            count: res
+          });
         }
         callback(null, res);
       });
