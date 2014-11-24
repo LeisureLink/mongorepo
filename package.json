@@ -1,6 +1,6 @@
 {
   "name": "mongorepo",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A simple repository over MongoDB collection",
   "private": true,
   "main": "app.js",
