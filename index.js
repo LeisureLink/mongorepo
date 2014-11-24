@@ -337,6 +337,13 @@ Object.defineProperties(MongoRepo.prototype, {
     writable: true
   },
 
+  _filterUpdatedProperties: {
+    value: function _filterUpdatedProperties(path, key) {
+      return false;
+    },
+    writable: true
+  },
+
   _makeUpdateSet: {
     /**
      * Callback method invoked by the repository to calculate the updates to be pushed to the underlying mongodb; enables subclass manipulation of the data right before being stored.
@@ -481,7 +488,7 @@ Object.defineProperties(MongoRepo.prototype, {
      * @instance
      */
     value: function getById(id, callback) {
-      assert.string(id, 'id');
+      assert.ok(id, 'id');
       var self = this;
       this._collection.findOne({
         _id: id
@@ -713,7 +720,7 @@ Object.defineProperties(MongoRepo.prototype, {
      * @instance
      */
     value: function del(id, callback) {
-      assert.string(id, 'id');
+      assert.ok(id, 'id');
       var self = this;
       self._collection.remove({
         _id: id

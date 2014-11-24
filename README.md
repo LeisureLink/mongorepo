@@ -10,24 +10,15 @@ Clone this repository, then use `npm` to install the dependencies:
 npm install
 ```
 
-** Link with NPM **
+## Use
 
-Since `mongorepo` is a private package, you'll also need to link it with your local NPM to make it available to dependent packages:
+Reference the `MongoRepo` base class using node's `require`:
 
-```bash
-npm link
+```javascript
+var MongoRepo = require('mongorepo');
 ```
 
-** Let dependencies know where this package is located **
-
-From packages that rely upon `mongorepo`, you'll need to tell NPM to locally link to it:
-
-```bash
-# from within the dependent package's root folder...
-npm link mongorepo
-```
-
-## Documentation
+## Additional Documentation
 
 There is a document tree under the `docs` folder, its a work in progress.
 
