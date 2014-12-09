@@ -577,7 +577,7 @@ Object.defineProperties(MongoRepo.prototype, {
 
   batchCreate: {
     /**
-     * Creates the privided models on the underlying storage as a batch.
+     * Creates the provided models on the underlying storage as a batch.
      * @method batchCreate
      * @param {object[]} models The domain models supplying data to be stored.
      * @param {function} callback A callback function invoked by the repository when the operation completes.
@@ -621,7 +621,7 @@ Object.defineProperties(MongoRepo.prototype, {
                 model, created = [],
                 evt = [];
               while (++j < jlen) {
-                model = self._transformData(res[i]);
+                model = self._transformData(res[j]);
                 created.push(model);
                 evt.push(new CreatedEventData(
                   self._dataIdFromModel(model),
