@@ -18,6 +18,8 @@ Reference the `MongoRepo` base class using node's `require`:
 var MongoRepo = require('mongorepo');
 ```
 
+See the [examples](https://github.com/VacationRoost/mongorepo/blob/master/examples/raw-repo-example.js) for more.
+
 ## Additional Documentation
 
 There is a document tree under the `docs` folder, its a work in progress.
@@ -36,3 +38,8 @@ The `Makefile` in the package's root directory contains a `docs` target.
 make docs
 ```
 
+## Releases
+
+```
+2014-12-09 0.1.2 Fixes bug in #batchCreate
+```
