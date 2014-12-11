@@ -8,10 +8,13 @@ all: deps test
 docs:
 	$(JSDOC) index.js lib/ -d $(DOCS_OUT)
 
-deps:
-	$(NPM) install
+deps: install
 
 test:
+	@MONGOHOST=localhost NODE_ENV=test \
 	mocha -R spec
 
-.PHONY: deps all
+install link:
+	@npm $@
+
+.PHONY: deps all test
