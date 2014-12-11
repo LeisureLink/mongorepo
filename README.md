@@ -1,4 +1,4 @@
-# mongorepo
+# mongorepo [![Build Status](https://drone.io/github.com/VacationRoost/mongorepo/status.png)](https://drone.io/github.com/VacationRoost/mongorepo/latest)
 
 A simple repository over MongoDB collections
 
