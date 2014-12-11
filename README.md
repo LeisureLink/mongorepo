@@ -26,6 +26,7 @@ Tests are written using [Mocha](http://mochajs.org/) and [expect.js](https://git
 
 ```bash
 npm test
+```
 
 ... or ...
 
