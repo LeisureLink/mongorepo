@@ -17,4 +17,4 @@ test:
 install link:
 	@npm $@
 
-.PHONY: deps all test
+.PHONY: deps all test docs
