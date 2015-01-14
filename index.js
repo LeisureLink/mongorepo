@@ -604,7 +604,10 @@ Object.defineProperties(MongoRepo.prototype, {
               error: err
             });
           } else {
-            valid.push(self._transformModel(models[index]));
+            valid.push(
+              self._beforeCreateDataModel(
+                self._transformModel(models[index]))
+            );
           }
           if (++count === len) {
             if (invalid.length) {
@@ -663,6 +666,7 @@ Object.defineProperties(MongoRepo.prototype, {
         }
 
         var updated = self._transformModel(model);
+        updated = self._beforeUpdateDataModel(updated);
         var id = self._dataIdFromModel(model);
         var idRef = {
           _id: id
@@ -678,9 +682,8 @@ Object.defineProperties(MongoRepo.prototype, {
           var changes = self._makeUpdateSet(data, updated);
           if (changes.$set || changes.$unset) {
             if (self._timestampOnUpdate) {
-              var timestamps = {};
-              setValueForAllPointers(timestamps, self._timestampOnUpdate, true);
-              changes.$currentDate = timestamps;
+              if (!changes.$set) changes.$set = {};
+              setValueForAllPointers(changes.$set, self._timestampOnUpdate, new Date());
             }
             // allow sub-classes to modify the update set...
             if (self._afterMakeUpdateSet) {

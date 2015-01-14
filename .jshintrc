@@ -3,5 +3,5 @@
 	"laxcomma": true,
 	"nomen": false,
 	"indent": 2,
-	"predef": ["module", "require"]
+	"predef": ["module", "require", "process"]
 }
