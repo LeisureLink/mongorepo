@@ -1,4 +1,4 @@
-# mongorepo [![Circle CI](https://circleci.com/gh/VacationRoost/mongorepo.svg?style=svg&circle-token=35a069a8830bbf4f30e0a5a94ecd17ebf975b70f)](https://circleci.com/gh/VacationRoost/mongorepo)
+# mongorepo [![Circle CI](https://circleci.com/gh/LeisureLink/mongorepo.svg?style=svg&circle-token=35a069a8830bbf4f30e0a5a94ecd17ebf975b70f)](https://circleci.com/gh/LeisureLink/mongorepo)
 
 A simple repository over MongoDB collections
 
@@ -18,7 +18,7 @@ Reference the `MongoRepo` base class using node's `require`:
 var MongoRepo = require('mongorepo');
 ```
 
-See the [examples](https://github.com/VacationRoost/mongorepo/blob/master/examples/raw-repo-example.js) for more.
+See the [examples](https://github.com/LeisureLink/mongorepo/blob/master/examples/raw-repo-example.js) for more.
 
 ## Tests
 
