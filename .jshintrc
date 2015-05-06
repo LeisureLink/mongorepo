@@ -1,7 +1,7 @@
 {
-	"strict": true,
-	"laxcomma": true,
-	"nomen": false,
-	"indent": 2,
-	"predef": ["module", "require"]
+  "node": true,
+  "strict": true,
+  "laxcomma": true,
+  "nomen": false,
+  "indent": 2
 }

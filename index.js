@@ -558,6 +558,13 @@ Object.defineProperties(MongoRepo.prototype, {
         }
         var data = self._transformModel(model);
         data = self._beforeCreateDataModel(data);
+        
+        if (!data._id) {
+          var id = self._dataIdFromModel(model);
+          if (id) {
+            data._id = id;
+          }
+        }
 
         self._collection.insert(data, {
           w: 1
@@ -604,7 +611,15 @@ Object.defineProperties(MongoRepo.prototype, {
               error: err
             });
           } else {
-            valid.push(self._transformModel(models[index]));
+            var data = self._transformModel(model);
+            data = self._beforeCreateDataModel(data);
+            if (!data._id) {
+              var id = self._dataIdFromModel(model);
+              if (id) {
+                data._id = id;
+              }
+            }
+            valid.push(data);
           }
           if (++count === len) {
             if (invalid.length) {
