@@ -572,7 +572,7 @@ Object.defineProperties(MongoRepo.prototype, {
           if (err) {
             return callback(self.translateDbError(err));
           }
-          var model = self._transformData(res[0]);
+          var model = self._transformData(res);
           self.emit('created', new CreatedEventData(self._dataIdFromModel(model), model));
           callback(null, model);
         });
