@@ -706,7 +706,7 @@ Object.defineProperties(MongoRepo.prototype, {
                 return callback(self.translateDbError(err));
               }
               if (res) {
-                self.emit('updated', new UpdatedEventData(id, changes, res));
+                self.emit('updated', new UpdatedEventData(id, changes, res.n));
                 callback(null, res);
               } else {
                 self._objectNotFoundOnUpdate(model, callback);
