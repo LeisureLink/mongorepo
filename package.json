@@ -3,7 +3,7 @@
   "version": "0.1.2",
   "description": "A simple repository over MongoDB collection",
   "private": true,
-  "main": "app.js",
+  "main": "index.js",
   "scripts": {
     "test": "mocha -R spec"
   },
@@ -13,11 +13,11 @@
   },
   "author": "Phillip Clark <phillip@flitbit.com>",
   "dependencies": {
-    "deep-diff": "^0.2.0",
     "assert-plus": "^0.1.5",
+    "deep-diff": "^0.3.2",
     "json-ptr": "^0.2.0",
-    "mongodb": "^1.4.19",
-    "moment": "^2.8.3"
+    "moment": "^2.8.3",
+    "mongodb": "^1.4.19"
   },
   "devDependencies": {
     "mocha": "^2.0.1",
