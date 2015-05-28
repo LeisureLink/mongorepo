@@ -360,26 +360,37 @@ Object.defineProperties(MongoRepo.prototype, {
       var changes = [];
       deep.observableDiff(orig, updated,
         function(change) {
-          changes.push(change);
-        },
+        changes.push(change);
+      },
         this._filterUpdatedProperties.bind(this)
       );
       var edited, removed, i = -1,
           len = changes.length;
       if (len) {
         while (++i < len) {
-          if (changes[i].kind === 'E' || changes[i].kind === 'N') {
-            if (!edited) {
-              edited = {};
-            }
-            edited[changes[i].path.join('.')] = changes[i].rhs;
-          } else {
-            if (!removed) {
-              removed = {};
-            }
-            if (changes[i].kind === 'A') {
-              removed[changes[i].path.join('.') + '.' + changes[i].index] = 1
+          
+          if (changes[i].kind === 'A') {
+            if (changes[i].item.kind === 'E' || changes[i].item.kind === 'N') {
+              if (!edited) {
+                edited = {};
+              }
+              edited[changes[i].path.join('.') + '.' + changes[i].index] = changes[i].rhs;
             } else {
+              if (!removed) {
+                removed = {};
+              }
+              removed[changes[i].path.join('.') + '.' + changes[i].index] = 1;
+            }
+          } else {
+            if (changes[i].kind === 'E' || changes[i].kind === 'N') {
+              if (!edited) {
+                edited = {};
+              }
+              edited[changes[i].path.join('.')] = changes[i].rhs;
+            } else {
+              if (!removed) {
+                removed = {};
+              }
               removed[changes[i].path.join('.')] = 1;
             }
           }
