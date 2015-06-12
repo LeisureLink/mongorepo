@@ -1,10 +1,10 @@
 'use strict';
 
-var util = require('util'),
-  mongodb = require('mongodb'),
-  uuid = require('node-uuid'),
-  expect = require('expect.js'),
-  MongoRepo = require('../');
+var util = require('util');
+var mongodb = require('mongodb');
+var uuid = require('node-uuid');
+var expect = require('expect.js');
+var MongoRepo = require('../');
 
 function throwIfErrorOrFalsyResult(err, res) {
   if (err) {
