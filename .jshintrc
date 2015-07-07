@@ -1,7 +1,7 @@
 {
   "node": true,
-  "strict": true,
-  "laxcomma": true,
-  "nomen": false,
+	"strict": true,
+	"laxcomma": true,
+	"nomen": false,
   "indent": 2
 }

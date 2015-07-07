@@ -1,0 +1,14 @@
+# Used to build and test the project using CircleCI.
+
+machine:
+  node:
+    version: 0.10.28
+dependencies:
+  # Setup mongodb 2.6.6 on the test instance; Circle defaults to v2.4.x which is missing some features we utilize.
+  cache_directories:
+    - mongodb-linux-x86_64-2.6.6
+  pre:
+    - if [[ ! -d mongodb-linux-x86_64-2.6.6 ]]; then wget http://downloads.mongodb.org/linux/mongodb-linux-x86_64-2.6.6.tgz && tar xvzf mongodb-linux-x86_64-2.6.6.tgz; fi
+    - sudo /etc/init.d/mongodb stop
+    - sudo cp mongodb-linux-x86_64-2.6.6/bin/* /usr/bin
+    - sudo /etc/init.d/mongodb start

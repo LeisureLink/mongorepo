@@ -18,8 +18,8 @@ var ModelTransformStream = require('./lib/transform-stream');
 function prepareJsonPointers(pointers) {
   if (pointers && pointers.length) {
     var res = [],
-        i = -1,
-        len = pointers.length;
+      i = -1,
+      len = pointers.length;
     while (++i < len) {
       if (typeof pointers[i] === 'string') {
         res.push(JsonPointer.create(pointers[i]));
@@ -36,7 +36,7 @@ function prepareJsonPointers(pointers) {
 function setValueForAllPointers(obj, pointers, val) {
   if (pointers && pointers.length) {
     var i = -1,
-        len = pointers.length;
+      len = pointers.length;
     while (++i < len) {
       pointers[i].set(obj, val);
     }
@@ -82,9 +82,9 @@ function MongoRepo(db, options) {
   assert.optionalString(options.descriptiveName, 'options.descriptiveName');
   assert.optionalArrayOfString(options.timestampOnCreate, 'options.timestampOnCreate');
   assert.optionalArrayOfString(options.timestampOnUpdate, 'options.timestampOnUpdate');
-  
+
   events.EventEmitter.call(this);
-  
+
   /**
    * Fired when a model is created on the data store.
    *
@@ -114,12 +114,12 @@ function MongoRepo(db, options) {
    */
 
   var _idOp;
-  
+
   var _timestampOnCreate = prepareJsonPointers(options.timestampOnCreate);
   var _timestampOnUpdate = prepareJsonPointers(options.timestampOnUpdate);
-  
+
   Object.defineProperties(this, {
-    
+
     /**
      * The descriptive name of the domain model; used by the base class when generating errors and log messages.
      * @member {string} _descriptiveName
@@ -129,7 +129,7 @@ function MongoRepo(db, options) {
     _descriptiveName: {
       value: options.descriptiveName || 'Domain model'
     },
-    
+
     /**
      * The {@link identityAccessor} used by the repository to get the specified domain model's `identity`.
      * @member {identityAccessor} _dataIdFromModel
@@ -146,7 +146,7 @@ function MongoRepo(db, options) {
       },
       enumerable: true
     },
-    
+
     _makeModelIdAccessorForPropertyName: {
       /**
        * Creates and assigns an {@link identityAccessor} to the repository's `_dataIdFromModel` property.
@@ -168,7 +168,7 @@ function MongoRepo(db, options) {
       },
       enumerable: true
     },
-    
+
     /**
      * An array of JSON pointers identifying property paths that the repository will set to the current UTC date when {@link MongoRepo#create} is called.
      * @member {JsonPointer[]|string[]} _timestampOnCreate
@@ -185,7 +185,7 @@ function MongoRepo(db, options) {
       },
       enumerable: true
     },
-    
+
     /**
      * An array of JSON pointers identifying property paths that the repository will set to the current UTC date when {@link MongoRepo#update} is called.
      * @member {JsonPointer[]|string[]} _timestampOnUpdate
@@ -202,7 +202,7 @@ function MongoRepo(db, options) {
       },
       enumerable: true
     },
-    
+
     /**
      * Provides access to the MongoClient instance used by the repository.
      * @member {MongoClient} _db
@@ -212,7 +212,7 @@ function MongoRepo(db, options) {
     _db: {
       value: db
     },
-    
+
     /**
      * The name of the repository's data collection on the MongoDB backend.
      * @member {string} _namespace
@@ -222,7 +222,7 @@ function MongoRepo(db, options) {
     _namespace: {
       value: options.collection
     },
-    
+
     /**
      * The mongodb collection underlying the repository's operations.
      * @member {MongoCollection} _collection
@@ -234,7 +234,7 @@ function MongoRepo(db, options) {
     }
 
   });
-  
+
   var typId = typeof options.id;
   if (typId === 'function') {
     this._dataIdFromModel = options.id;
@@ -246,19 +246,19 @@ util.inherits(MongoRepo, events.EventEmitter);
 
 
 Object.defineProperties(MongoRepo.prototype, {
-  
+
   _notFoundError: {
     value: Error,
     enumerable: true,
     writable: true
   },
-  
+
   _conflictError: {
     value: Error,
     enumerable: true,
     writable: true
   },
-  
+
   _transformData: {
     /**
      * Used by the repository to transforms a data model retrieved from underlying mongodb into a domain model.
@@ -276,7 +276,7 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   _transformModel: {
     /**
      * Used by the repository to transform a domain model into the representation stored in data (data model).
@@ -294,7 +294,7 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   _beforeCreateDataModel: {
     /**
      * Callback method invoked by the repository before creating the data model on the underlying mongodb; enables subclass manipulation of the data right before being stored.
@@ -315,7 +315,7 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   _beforeUpdateDataModel: {
     /**
      * Callback method invoked by the repository before updating the data model on the underlying mongodb; enables subclass manipulation of the data right before being stored.
@@ -336,14 +336,14 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   _filterUpdatedProperties: {
     value: function _filterUpdatedProperties(path, key) {
       return false;
     },
     writable: true
   },
-  
+
   _makeUpdateSet: {
     /**
      * Callback method invoked by the repository to calculate the updates to be pushed to the underlying mongodb; enables subclass manipulation of the data right before being stored.
@@ -360,12 +360,12 @@ Object.defineProperties(MongoRepo.prototype, {
       var changes = [];
       deep.observableDiff(orig, updated,
         function(change) {
-        changes.push(change);
-      },
+          changes.push(change);
+        },
         this._filterUpdatedProperties.bind(this)
       );
       var edited, removed, i = -1,
-          len = changes.length;
+        len = changes.length;
       if (len) {
         while (++i < len) {
           
@@ -382,19 +382,19 @@ Object.defineProperties(MongoRepo.prototype, {
               removed[changes[i].path.join('.') + '.' + changes[i].index] = 1;
             }
           } else {
-            if (changes[i].kind === 'E' || changes[i].kind === 'N') {
-              if (!edited) {
-                edited = {};
-              }
-              edited[changes[i].path.join('.')] = changes[i].rhs;
-            } else {
-              if (!removed) {
-                removed = {};
-              }
-              removed[changes[i].path.join('.')] = 1;
+          if (changes[i].kind === 'E' || changes[i].kind === 'N') {
+            if (!edited) {
+              edited = {};
             }
+            edited[changes[i].path.join('.')] = changes[i].rhs;
+          } else {
+            if (!removed) {
+              removed = {};
+            }
+            removed[changes[i].path.join('.')] = 1;
           }
         }
+      }
       }
       var res = {};
       if (edited) {
@@ -408,7 +408,7 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   _objectNotFound: {
     /**
      * Callback method invoked by the repository when an object cannot be found on the backend (when looked up by Id).
@@ -428,7 +428,7 @@ Object.defineProperties(MongoRepo.prototype, {
     },
     enumerable: true
   },
-  
+
   _objectNotFoundOnUpdate: {
     /**
      * Callback method invoked by the repository when an object cannot be found during an update.
@@ -448,7 +448,7 @@ Object.defineProperties(MongoRepo.prototype, {
     },
     enumerable: true
   },
-  
+
   validate: {
     /**
      * Callback method invoked by the repository before storing a model ({@link MongoRepo#create} and {@link MongoRepo#update}).
@@ -467,7 +467,7 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   translateDbError: {
     /**
      * Callback method invoked by the repository when it receives errors from the underlying mongodb.
@@ -480,16 +480,16 @@ Object.defineProperties(MongoRepo.prototype, {
      */
     value: function translateDbError(err) {
       var msg = (typeof err === 'string') ? err : err.message;
-      
+
       if (msg.indexOf('duplicate key error') > 0) {
         return new this._conflictError('Creating the resource would cause a conflict on the server.');
       }
-      
+
       return err;
     },
     enumerable: true
   },
-  
+
   getById: {
     /**
      * Gets a model from the the repository by the model's Id.
@@ -522,7 +522,7 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   findMatch: {
     /**
      * Finds objects matching the specified query. This method is a raw pass-through to the underlying driver. Upon success,
@@ -551,7 +551,7 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   create: {
     /**
      * Creates the data on the underlying storage for the specified domain model.
@@ -573,7 +573,7 @@ Object.defineProperties(MongoRepo.prototype, {
         }
         var data = self._transformModel(model);
         data = self._beforeCreateDataModel(data);
-        
+
         if (!data._id) {
           var id = self._dataIdFromModel(model);
           if (id) {
@@ -596,7 +596,7 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   batchCreate: {
     /**
      * Creates the provided models on the underlying storage as a batch.
@@ -612,20 +612,20 @@ Object.defineProperties(MongoRepo.prototype, {
     value: function create(models, callback) {
       assert.arrayOfObject(models, 'models');
       var self = this,
-          i = -1,
-          len = models.length,
-          last = len - 1,
-          count = 0,
-          invalid = [],
-          valid = [],
-          ea = function(index, model, err) {
-            if (err) {
-              invalid.push({
-                index: index,
-                model: models[index],
-                error: err
-              });
-            } else {
+        i = -1,
+        len = models.length,
+        last = len - 1,
+        count = 0,
+        invalid = [],
+        valid = [],
+        ea = function(index, model, err) {
+          if (err) {
+            invalid.push({
+              index: index,
+              model: models[index],
+              error: err
+            });
+          } else {
               var data = self._transformModel(model);
               data = self._beforeCreateDataModel(data);
               if (!data._id) {
@@ -635,35 +635,35 @@ Object.defineProperties(MongoRepo.prototype, {
                 }
               }
               valid.push(data);
+          }
+          if (++count === len) {
+            if (invalid.length) {
+              return callback(invalid);
             }
-            if (++count === len) {
-              if (invalid.length) {
-                return callback(invalid);
+            self._collection.insert(valid, {
+              w: 1
+            }, function(err, res) {
+              if (err) {
+                return callback(self.translateDbError(err));
               }
-              self._collection.insert(valid, {
-                w: 1
-              }, function(err, res) {
-                if (err) {
-                  return callback(self.translateDbError(err));
-                }
-                var j = -1,
-                    jlen = res.length,
-                    model, created = [],
-                    evt = [];
-                while (++j < jlen) {
-                  model = self._transformData(res[j]);
-                  created.push(model);
-                  evt.push(new CreatedEventData(
-                    self._dataIdFromModel(model),
+              var j = -1,
+                jlen = res.length,
+                model, created = [],
+                evt = [];
+              while (++j < jlen) {
+                model = self._transformData(res[j]);
+                created.push(model);
+                evt.push(new CreatedEventData(
+                  self._dataIdFromModel(model),
                   model
-                  ));
-                }
-                self.emit('created', new BatchCreatedEventData(evt));
-                callback(null, created);
-              });
-            }
-          };
-      
+                ));
+              }
+              self.emit('created', new BatchCreatedEventData(evt));
+              callback(null, created);
+            });
+          }
+        };
+
       while (++i < len) {
         this.validate(models[i], ea.bind(this, i, models[i]));
       }
@@ -671,7 +671,7 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   update: {
     /**
      * Updates an existing model on the underlying storage.
@@ -691,8 +691,9 @@ Object.defineProperties(MongoRepo.prototype, {
         if (err) {
           return callback(err);
         }
-        
+
         var updated = self._transformModel(model);
+        updated = self._beforeUpdateDataModel(updated);
         var id = self._dataIdFromModel(model);
         var idRef = {
           _id: id
@@ -704,13 +705,12 @@ Object.defineProperties(MongoRepo.prototype, {
           if (data === null) {
             return self._objectNotFoundOnUpdate(model, callback);
           }
-          
+
           var changes = self._makeUpdateSet(data, updated);
           if (changes.$set || changes.$unset) {
             if (self._timestampOnUpdate) {
-              var timestamps = {};
-              setValueForAllPointers(timestamps, self._timestampOnUpdate, true);
-              changes.$currentDate = timestamps;
+              if (!changes.$set) changes.$set = {};
+              setValueForAllPointers(changes.$set, self._timestampOnUpdate, new Date());
             }
             // allow sub-classes to modify the update set...
             if (self._afterMakeUpdateSet) {
@@ -736,7 +736,7 @@ Object.defineProperties(MongoRepo.prototype, {
     },
     enumerable: true
   },
-  
+
   del: {
     /**
      * Deletes a model from the underlying storage.
@@ -768,7 +768,7 @@ Object.defineProperties(MongoRepo.prototype, {
     },
     enumerable: true
   },
-  
+
   delMatch: {
     /**
      * Deletes models matching the specified query.

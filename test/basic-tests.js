@@ -30,8 +30,8 @@ describe('MongoRepo', function () {
   before(function (done) {
     // Ensure we are connected to a db...
     //   NOTE:
-    var mongohost = process.env.MONGOHOST || 'localhost';
-    MongoClient.connect('mongodb://'+mongohost+':27017/test', function (err, db) {
+    var mongohost = process.env.MONGODB_TEST_URL || 'mongodb://127.0.0.1:27017/test';
+    MongoClient.connect(mongohost, function (err, db) {
       if (err) {
         util.log("Failed to connect to the MongoDB server. These tests use the default `test` database present with a new install of MongoDB.");
         util.log("Ensure you have mongo running locally on the default port 27017");

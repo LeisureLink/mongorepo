@@ -91,6 +91,7 @@ function whenConnected(db) {
               }
 
               expect(updated).to.be(1);
+              fin();
 
             } catch (unexpected) {
               fin();
@@ -113,7 +114,8 @@ function whenConnected(db) {
 }
 
 // Ensure we are connected to a db...
-mongodb.MongoClient.connect('mongodb://localhost:27017/test', function(err, db) {
+var mongohost = process.env.MONGODB_TEST_URL || 'mongodb://127.0.0.1:27017/test';
+mongodb.MongoClient.connect(mongohost, function(err, db) {
   if (err) {
     util.log(util.inspect(err, false, 99));
     throw err;
