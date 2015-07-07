@@ -18,8 +18,8 @@ var ModelTransformStream = require('./lib/transform-stream');
 function prepareJsonPointers(pointers) {
   if (pointers && pointers.length) {
     var res = [],
-      i = -1,
-      len = pointers.length;
+        i = -1,
+        len = pointers.length;
     while (++i < len) {
       if (typeof pointers[i] === 'string') {
         res.push(JsonPointer.create(pointers[i]));
@@ -36,13 +36,12 @@ function prepareJsonPointers(pointers) {
 function setValueForAllPointers(obj, pointers, val) {
   if (pointers && pointers.length) {
     var i = -1,
-      len = pointers.length;
+        len = pointers.length;
     while (++i < len) {
       pointers[i].set(obj, val);
     }
   }
 }
-
 
 function setTimestampForAllPointers(obj, pointers) {
   if (pointers) {
@@ -56,7 +55,6 @@ function setTimestampForAllPointers(obj, pointers) {
  * @param {object} model An instance of the repository's domain model.
  * @returns {string} The specified model's id.
  */
-
 
 /**
  * Creates a new MongoRepo on the specified mongo `db`, and whose behavior is controlled by `options`.
@@ -244,7 +242,6 @@ function MongoRepo(db, options) {
 }
 util.inherits(MongoRepo, events.EventEmitter);
 
-
 Object.defineProperties(MongoRepo.prototype, {
 
   _notFoundError: {
@@ -360,15 +357,15 @@ Object.defineProperties(MongoRepo.prototype, {
       var changes = [];
       deep.observableDiff(orig, updated,
         function(change) {
-          changes.push(change);
-        },
+        changes.push(change);
+      },
         this._filterUpdatedProperties.bind(this)
       );
       var edited, removed, i = -1,
-        len = changes.length;
+          len = changes.length;
       if (len) {
         while (++i < len) {
-          
+
           if (changes[i].kind === 'A') {
             if (changes[i].item.kind === 'E' || changes[i].item.kind === 'N') {
               if (!edited) {
@@ -382,19 +379,19 @@ Object.defineProperties(MongoRepo.prototype, {
               removed[changes[i].path.join('.') + '.' + changes[i].index] = 1;
             }
           } else {
-          if (changes[i].kind === 'E' || changes[i].kind === 'N') {
-            if (!edited) {
-              edited = {};
+            if (changes[i].kind === 'E' || changes[i].kind === 'N') {
+              if (!edited) {
+                edited = {};
+              }
+              edited[changes[i].path.join('.')] = changes[i].rhs;
+            } else {
+              if (!removed) {
+                removed = {};
+              }
+              removed[changes[i].path.join('.')] = 1;
             }
-            edited[changes[i].path.join('.')] = changes[i].rhs;
-          } else {
-            if (!removed) {
-              removed = {};
-            }
-            removed[changes[i].path.join('.')] = 1;
           }
         }
-      }
       }
       var res = {};
       if (edited) {
@@ -580,7 +577,7 @@ Object.defineProperties(MongoRepo.prototype, {
             data._id = id;
           }
         }
-        
+
         self._collection.insert(data, {
           w: 1
         }, function(err, res) {
@@ -612,20 +609,20 @@ Object.defineProperties(MongoRepo.prototype, {
     value: function create(models, callback) {
       assert.arrayOfObject(models, 'models');
       var self = this,
-        i = -1,
-        len = models.length,
-        last = len - 1,
-        count = 0,
-        invalid = [],
-        valid = [],
-        ea = function(index, model, err) {
-          if (err) {
-            invalid.push({
-              index: index,
-              model: models[index],
-              error: err
-            });
-          } else {
+          i = -1,
+          len = models.length,
+          last = len - 1,
+          count = 0,
+          invalid = [],
+          valid = [],
+          ea = function(index, model, err) {
+            if (err) {
+              invalid.push({
+                index: index,
+                model: models[index],
+                error: err
+              });
+            } else {
               var data = self._transformModel(model);
               data = self._beforeCreateDataModel(data);
               if (!data._id) {
@@ -635,34 +632,34 @@ Object.defineProperties(MongoRepo.prototype, {
                 }
               }
               valid.push(data);
-          }
-          if (++count === len) {
-            if (invalid.length) {
-              return callback(invalid);
             }
-            self._collection.insert(valid, {
-              w: 1
-            }, function(err, res) {
-              if (err) {
-                return callback(self.translateDbError(err));
+            if (++count === len) {
+              if (invalid.length) {
+                return callback(invalid);
               }
-              var j = -1,
-                jlen = res.length,
-                model, created = [],
-                evt = [];
-              while (++j < jlen) {
-                model = self._transformData(res[j]);
-                created.push(model);
-                evt.push(new CreatedEventData(
-                  self._dataIdFromModel(model),
+              self._collection.insert(valid, {
+                w: 1
+              }, function(err, res) {
+                if (err) {
+                  return callback(self.translateDbError(err));
+                }
+                var j = -1,
+                    jlen = res.length,
+                    model, created = [],
+                    evt = [];
+                while (++j < jlen) {
+                  model = self._transformData(res[j]);
+                  created.push(model);
+                  evt.push(new CreatedEventData(
+                    self._dataIdFromModel(model),
                   model
-                ));
-              }
-              self.emit('created', new BatchCreatedEventData(evt));
-              callback(null, created);
-            });
-          }
-        };
+                  ));
+                }
+                self.emit('created', new BatchCreatedEventData(evt));
+                callback(null, created);
+              });
+            }
+          };
 
       while (++i < len) {
         this.validate(models[i], ea.bind(this, i, models[i]));
