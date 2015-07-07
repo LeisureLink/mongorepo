@@ -12,6 +12,12 @@
     "url": "git+ssh://git@github.com:LeisureLink/mongorepo.git"
   },
   "author": "Phillip Clark <phillip@flitbit.com>",
+  "contributors": [
+    {
+      "name": "Eli Mumford",
+      "email": "elimumford@gmail.com"
+    }
+  ],
   "dependencies": {
     "assert-plus": "^0.1.5",
     "deep-diff": "^0.3.2",
