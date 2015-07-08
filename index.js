@@ -536,6 +536,45 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
+  
+  findWindowedMatch: {
+    /*
+     * Finds objects, sorts them, and applies skip() & limit() functions to the result. The arguments to this method are passed directly
+     * to the underlying driver's MongoBD collection object.
+     * @function findWindowedMatch
+     * @param {object} match - A mongodb native client find object
+     * @param {object} sort - A mongodb native client sort specification
+     * @param {number} skip - How results to skip before returning an item
+     * @param {number} limit - Limit on the total number of results to return
+     * @param {}
+     * @memberOf MongoRepo
+     * @instance
+     */
+    value: function findWindowedMatch(match, sort, skip, limit, callback) {
+      assert.object(match, 'match');
+      assert.object(sort, 'sort');
+      assert.number(skip, 'skip');
+      assert.number(limit, 'limit');
+      assert.func(callback, 'callback');
+      var self = this,
+          source,
+          modelTransform;
+      try {
+        source = self._collection.find(match)
+          .sort(sort)
+          .skip(skip)
+          .limit(limit)
+          .stream();
+        modelTransform = new ModelTransformStream(this._transformData.bind(this));
+        source.pipe(modelTransform);
+        callback(null, modelTransform);
+      } catch(e) {
+        callback(e); 
+      }
+    },
+    enumerable: true,
+    writable: true
+  },
 
   create: {
     /**
