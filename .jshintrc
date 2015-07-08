@@ -1,8 +1,7 @@
 {
+  "node": true,
 	"strict": true,
 	"laxcomma": true,
 	"nomen": false,
-	"node": true,
-	"indent": 2,
-	"predef": ["module", "require", "process"]
+  "indent": 2
 }
