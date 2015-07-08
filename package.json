@@ -1,6 +1,6 @@
 {
   "name": "mongorepo",
-  "version": "0.1.4",
+  "version": "0.2.0",
   "description": "A simple repository over MongoDB collection",
   "private": true,
   "main": "index.js",
@@ -16,6 +16,10 @@
     {
       "name": "Eli Mumford",
       "email": "elimumford@gmail.com"
+    },
+    {
+      "name": "Michael Hughes",
+      "email": "mhughes@leisurelink.com"
     }
   ],
   "dependencies": {
