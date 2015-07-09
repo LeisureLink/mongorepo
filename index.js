@@ -548,7 +548,7 @@ Object.defineProperties(MongoRepo.prototype, {
     enumerable: true,
     writable: true
   },
-  
+
   findWindowedMatch: {
     /*
      * Finds objects, sorts them, and applies skip() & limit() functions to the result. The arguments to this method are passed directly
@@ -580,8 +580,8 @@ Object.defineProperties(MongoRepo.prototype, {
         modelTransform = new ModelTransformStream(this._transformData.bind(this));
         source.pipe(modelTransform);
         callback(null, modelTransform);
-      } catch(e) {
-        callback(e); 
+      } catch (e) {
+        callback(e);
       }
     },
     enumerable: true,
@@ -623,7 +623,8 @@ Object.defineProperties(MongoRepo.prototype, {
           if (err) {
             return callback(self.translateDbError(err));
           }
-          var model = self._transformData(res);
+          var result = Array.isArray(res) ? res[0] : res;
+          var model = self._transformData(result);
           self.emit('created', new CreatedEventData(self._dataIdFromModel(model), model));
           callback(null, model);
         });
