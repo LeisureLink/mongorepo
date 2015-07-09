@@ -758,6 +758,7 @@ Object.defineProperties(MongoRepo.prototype, {
                 return callback(self.translateDbError(err));
               }
               if (res) {
+                var num = !isNaN(res) ? res : !isNaN(res.n) ? res.n : 0;
                 self.emit('updated', new UpdatedEventData(id, changes, res.n));
                 callback(null, res);
               } else {
