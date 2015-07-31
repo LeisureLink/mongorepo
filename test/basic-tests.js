@@ -73,5 +73,70 @@ describe('MongoRepo', function () {
     });
 
   });
+  
+  describe('after constructing the repo', function() {
+    var _repo;
+
+    function pollWaitForDb(done) {
+      if (_db) {
+        _repo = new MongoRepo(_db, {
+          collection: collectionName
+        });
+        return done();
+      }
+      setTimeout(function () { pollWaitForDb(done); }, 200);
+    }
+
+    before(function (done) {
+      pollWaitForDb(done);
+    });
+
+    after(function () {
+      // drop the collections used by the tests
+      if (_repo) {
+        _repo._collection.drop();
+      }
+    });
+    
+    describe('given an existing record', function() {
+      var _record;
+      
+      before('create initial record', function(done) {
+        _repo.create({ _id: '123',
+          field: 'a field',
+          arrayField: [ 'data' ] }, function (err) {
+          if (err) {
+            done(err);
+          } else {
+            done();
+          }
+        });
+      });
+      
+      it('should support adding to an existing array on a record', function (done) {
+        _repo.update({
+          _id: '123',
+          arrayField: [ 'data', { other: 'thing' }]
+        }, function (err) {
+          if (err) {
+            done(err);
+          } else {
+            _repo.getById('123', function(err, model) {
+              if (err) {
+                done(err);
+              } else {
+                expect(model).to.be.ok();
+                expect(model.field).to.not.be.ok();
+                expect(model.arrayField.length).to.be(2);
+                expect(model.arrayField[1].other).to.be('thing');
+                done();
+              }
+            });
+          }
+        });
+      });
+    });
+  
+  });
 
 });

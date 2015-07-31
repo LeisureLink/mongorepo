@@ -371,7 +371,7 @@ Object.defineProperties(MongoRepo.prototype, {
               if (!edited) {
                 edited = {};
               }
-              edited[changes[i].path.join('.') + '.' + changes[i].index] = changes[i].rhs;
+              edited[changes[i].path.join('.') + '.' + changes[i].index] = changes[i].item.rhs;
             } else {
               if (!removed) {
                 removed = {};
