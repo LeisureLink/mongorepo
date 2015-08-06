@@ -135,8 +135,93 @@ describe('MongoRepo', function () {
           }
         });
       });
+    
+      it('should support adding an array to the record', function (done) {
+        _repo.update({
+          _id: '123',
+          arrayField: [ 'data', { other: 'thing' }],
+          anotherArray: [ 'foo' ]
+        }, function (err) {
+          if (err) {
+            done(err);
+          } else {
+            _repo.getById('123', function(err, model) {
+              if (err) {
+                done(err);
+              } else {
+                expect(model).to.be.ok();
+                expect(model.anotherArray).to.be.ok();
+                expect(model.anotherArray.length).to.be(1);
+                expect(model.anotherArray[0]).to.be('foo');
+                done();
+              }
+            });
+          }
+        });
+      });
     });
-  
+    
+    
+    describe('given an existing record with an object array', function() {
+      var _record;
+      
+      before('create initial record', function(done) {
+        _repo.create({ _id: '124',
+          arrayField: [ { id: 'foo', other: 7 }, { id: 'bar', other: 8 } ]
+        }, function (err) {
+          if (err) {
+            done(err);
+          } else {
+            done();
+          }
+        });
+      });
+      
+      it('should support removing an element from the existing array', function (done) {
+        _repo.update({
+          _id: '124',
+          arrayField: [ { id: 'foo', other: 7 } ]
+        }, function (err) {
+          if (err) {
+            done(err);
+          } else {
+            _repo.getById('124', function(err, model) {
+              if (err) {
+                done(err);
+              } else {
+                expect(model).to.be.ok();
+                expect(model.arrayField.length).to.be(1);
+                expect(model.arrayField[0].id).to.be('foo');
+                done();
+              }
+            });
+          }
+        });
+      });
+      
+      
+      it('should support editing an element in an existing array on a record', function (done) {
+        _repo.update({
+          _id: '124',
+           arrayField: [ { id: 'foo', other: 9 } ]
+        }, function (err) {
+          if (err) {
+            done(err);
+          } else {
+            _repo.getById('124', function(err, model) {
+              if (err) {
+                done(err);
+              } else {
+                expect(model).to.be.ok();
+                expect(model.arrayField.length).to.be(1);
+                expect(model.arrayField[0].other).to.be(9);
+                done();
+              }
+            });
+          }
+        });
+      });      
+    });  
   });
 
 });
