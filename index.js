@@ -361,7 +361,7 @@ Object.defineProperties(MongoRepo.prototype, {
       },
         this._filterUpdatedProperties.bind(this)
       );
-      var edited, removed, i = -1,
+      var edited, removed, pull, i = -1,
           len = changes.length;
       if (len) {
         while (++i < len) {
@@ -373,10 +373,10 @@ Object.defineProperties(MongoRepo.prototype, {
               }
               edited[changes[i].path.join('.') + '.' + changes[i].index] = changes[i].item.rhs;
             } else {
-              if (!removed) {
-                removed = {};
+              if (!pull) {
+                pull = {};
               }
-              removed[changes[i].path.join('.') + '.' + changes[i].index] = 1;
+              pull[changes[i].path] = changes[i].item.lhs;
             }
           } else {
             if (changes[i].kind === 'E' || changes[i].kind === 'N') {
@@ -399,6 +399,9 @@ Object.defineProperties(MongoRepo.prototype, {
       }
       if (removed) {
         res.$unset = removed;
+      }
+      if (pull) {
+        res.$pull = pull;
       }
       return res;
     },
@@ -744,7 +747,7 @@ Object.defineProperties(MongoRepo.prototype, {
           }
 
           var changes = self._makeUpdateSet(data, updated);
-          if (changes.$set || changes.$unset) {
+          if (changes.$set || changes.$unset || changes.$pull) {
             if (self._timestampOnUpdate) {
               if (!changes.$set) changes.$set = {};
               setValueForAllPointers(changes.$set, self._timestampOnUpdate, new Date());
