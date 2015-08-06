@@ -222,6 +222,66 @@ describe('MongoRepo', function () {
         });
       });      
     });  
+  
+    describe('given an existing record with a 1 element object array', function() {
+      var _record;
+      
+      before('create initial record', function(done) {
+        _repo.create({ _id: '125',
+          arrayField: [ { id: 'foo', other: 7 } ]
+        }, function (err) {
+          if (err) {
+            done(err);
+          } else {
+            done();
+          }
+        });
+      });
+      
+      it('should support removing the last element from the existing array and leave the array', function (done) {
+        _repo.update({
+          _id: '125',
+          arrayField: [ ]
+        }, function (err) {
+          if (err) {
+            done(err);
+          } else {
+            _repo.getById('125', function(err, model) {
+              if (err) {
+                done(err);
+              } else {
+                expect(model).to.be.ok();
+                expect(model.arrayField.length).to.be(0);
+                done();
+              }
+            });
+          }
+        });
+      });
+      
+      
+      it('should support editing an element in an existing array on a record', function (done) {
+        _repo.update({
+          _id: '124',
+           arrayField: [ { id: 'foo', other: 9 } ]
+        }, function (err) {
+          if (err) {
+            done(err);
+          } else {
+            _repo.getById('124', function(err, model) {
+              if (err) {
+                done(err);
+              } else {
+                expect(model).to.be.ok();
+                expect(model.arrayField.length).to.be(1);
+                expect(model.arrayField[0].other).to.be(9);
+                done();
+              }
+            });
+          }
+        });
+      });      
+    });    
   });
 
 });
