@@ -308,10 +308,13 @@ describe('MongoRepo', function() {
         _repo.update({
           _id: '789',
           arrayField: ['data', { other: 'thing' }]
-        }, function(err) {
+        }, function(err, result) {
           if (err) {
             done(err);
           } else {
+            expect(result).to.be.ok();
+            expect(result.ok).to.be(1);
+            expect(result.n).to.be(1);
             _repo.getById('789', function(err, model) {
               if (err) {
                 done(err);
@@ -332,10 +335,13 @@ describe('MongoRepo', function() {
           _id: '789',
           arrayField: ['data', { other: 'thing' }],
           anotherArray: ['foo']
-        }, function(err) {
+        }, function(err, result) {
           if (err) {
             done(err);
           } else {
+            expect(result).to.be.ok();
+            expect(result.ok).to.be(1);
+            expect(result.n).to.be(1);
             _repo.getById('789', function(err, model) {
               if (err) {
                 done(err);
@@ -486,10 +492,13 @@ describe('MongoRepo', function() {
       });
 
       it('can delete', function(done) {
-        _repo.del('todelete', function(err) {
+        _repo.del('todelete', function(err, result) {
           if (err) {
             done(err);
           } else {
+            expect(result).to.be.ok();
+            expect(result.ok).to.be(1);
+            expect(result.n).to.be(1);
             _repo.getById('todelete', function(err, model) {
               expect(err).to.be.ok();
               expect(err).to.match(/not found/);

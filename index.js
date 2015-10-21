@@ -804,7 +804,7 @@ Object.defineProperties(MongoRepo.prototype, {
           if (res) {
             self.emit('deleted', id);
           }
-          callback(null, res);
+          callback(null, res.result);
         });
     },
     enumerable: true
