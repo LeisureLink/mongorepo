@@ -1,6 +1,6 @@
 {
   "name": "mongorepo",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "A simple repository over MongoDB collection",
   "private": true,
   "main": "index.js",
@@ -26,12 +26,12 @@
     "assert-plus": "^0.1.5",
     "deep-diff": "^0.3.2",
     "json-ptr": "^0.2.0",
-    "moment": "^2.8.3",
-    "mongodb": "^1.4.19"
+    "moment": "^2.10.6",
+    "mongodb": "^2.0.46"
   },
   "devDependencies": {
-    "mocha": "^2.0.1",
+    "mocha": "^2.3.3",
     "expect.js": "^0.3.1",
-    "node-uuid": "^1.4.1"
+    "node-uuid": "^1.4.3"
   }
 }
