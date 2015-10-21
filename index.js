@@ -763,7 +763,7 @@ Object.defineProperties(MongoRepo.prototype, {
               if (res) {
                 var num = (res && res.result && !isNaN(res.result.n)) ? res.result.n : 0;
                 self.emit('updated', new UpdatedEventData(id, changes, num));
-                callback(null, res);
+                callback(null, res.result);
               } else {
                 self._objectNotFoundOnUpdate(model, callback);
               }
