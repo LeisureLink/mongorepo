@@ -687,11 +687,11 @@ Object.defineProperties(MongoRepo.prototype, {
                 return callback(self.translateDbError(err));
               }
               var j = -1,
-                jlen = res.length,
+                jlen = res.insertedCount,
                 model, created = [],
                 evt = [];
               while (++j < jlen) {
-                model = self._transformData(res[j]);
+                model = self._transformData(res.ops[j]);
                 created.push(model);
                 evt.push(new CreatedEventData(
                   self._dataIdFromModel(model),

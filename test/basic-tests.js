@@ -104,10 +104,11 @@ describe('MongoRepo', function() {
           _id: '123',
           field: 'a field',
           arrayField: ['data']
-        }, function(err) {
+        }, function(err, result) {
           if (err) {
             done(err);
           } else {
+            expect(result).to.be.ok();
             done();
           }
         });
@@ -138,6 +139,9 @@ describe('MongoRepo', function() {
           if (err) {
             done(err);
           } else {
+            expect(result).to.be.ok();
+            expect(result).to.be.an('array');
+            expect(result.length).to.be(3);
             done();
           }
         });
