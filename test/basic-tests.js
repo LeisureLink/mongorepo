@@ -115,6 +115,36 @@ describe('MongoRepo', function() {
 
     });
 
+    describe('#batchCreate', function() {
+
+      it('can create many record', function(done) {
+        _repo.batchCreate([
+          {
+            _id: '10-123',
+            field: 'a field',
+            arrayField: ['data']
+          },
+          {
+            _id: '10-456',
+            field: 'a field',
+            arrayField: ['data']
+          },
+          {
+            _id: '10-789',
+            field: 'a field',
+            arrayField: ['data']
+          }
+        ], function(err, result) {
+          if (err) {
+            done(err);
+          } else {
+            done();
+          }
+        });
+      });
+
+    });
+
     describe('#getById', function() {
 
       before('create record', function(done) {
@@ -144,6 +174,112 @@ describe('MongoRepo', function() {
           }
         });
 
+      });
+
+    });
+
+    describe('#findMatch', function() {
+
+      before('create some records', function(done) {
+        _repo.create({
+          _id: 'findmatchsearchfor1',
+          field: 'First Search Record',
+          arrayField: ['data']
+        }, function(err) {
+          if (err) {
+            done(err);
+          } else {
+            _repo.create({
+              _id: 'findmatchsearchfor2',
+              field: 'Second Search Record',
+              arrayField: ['data']
+            }, function(err) {
+              if (err) {
+                done(err);
+              } else {
+                done();
+              }
+            });
+          }
+        });
+      });
+
+      it('should find the Second record', function(done) {
+        _repo.findMatch({ field: { $regex: 'Second.*', $options: 'i' } }, function(err, stream) {
+          if (err) {
+            done(err);
+          } else {
+            var results = [];
+            expect(stream).to.be.ok();
+            expect(stream.on).to.be.a('function');
+            stream.on('data', function(record) {
+              results.push(record);
+            });
+            stream.on('end', function() {
+              expect(results.length).to.be(1);
+              expect(results[0].field).to.be('Second Search Record');
+              done();
+            });
+          }
+        });
+      });
+
+    });
+
+    describe('#findWindowedMatch', function() {
+
+      before('create some records', function(done) {
+        _repo.create({
+          _id: 'findwindowmatchsearchfor1',
+          field: 'First Search Record',
+          arrayField: ['data']
+        }, function(err) {
+          if (err) {
+            done(err);
+          } else {
+            _repo.create({
+              _id: 'findwindowmatchsearchfor2',
+              field: 'Second Search THIS Record',
+              arrayField: ['data']
+            }, function(err) {
+              if (err) {
+                done(err);
+              } else {
+                _repo.create({
+                  _id: 'findwindowmatchsearchfor3',
+                  field: 'Third Search THIS Record',
+                  arrayField: ['data']
+                }, function(err) {
+                  if (err) {
+                    done(err);
+                  } else {
+                    done();
+                  }
+                });
+              }
+            });
+          }
+        });
+      });
+
+      it('should find the Second and Third Records', function(done) {
+        _repo.findWindowedMatch({ field: { $regex: '.*THIS.*' } }, { field: 1 }, 0, 10, function(err, stream) {
+          if (err) {
+            done(err);
+          } else {
+            var results = [];
+            expect(stream).to.be.ok();
+            expect(stream.on).to.be.a('function');
+            stream.on('data', function(record) {
+              results.push(record);
+            });
+            stream.on('end', function() {
+              expect(results.length).to.be(2);
+              expect(results[0].field).to.be('Second Search THIS Record');
+              done();
+            });
+          }
+        });
       });
 
     });
@@ -210,6 +346,124 @@ describe('MongoRepo', function() {
           }
         });
       });
+
+      describe('given an existing record with an object array', function() {
+        before('create initial record', function(done) {
+          _repo.create({
+            _id: '124',
+            arrayField: [{ id: 'foo', other: 7 }, { id: 'bar', other: 8 }]
+          }, function(err) {
+            if (err) {
+              done(err);
+            } else {
+              done();
+            }
+          });
+        });
+
+        it('should support removing an element from the existing array', function(done) {
+          _repo.update({
+            _id: '124',
+            arrayField: [{ id: 'foo', other: 7 }]
+          }, function(err) {
+            if (err) {
+              done(err);
+            } else {
+              _repo.getById('124', function(err, model) {
+                if (err) {
+                  done(err);
+                } else {
+                  expect(model).to.be.ok();
+                  expect(model.arrayField.length).to.be(1);
+                  expect(model.arrayField[0].id).to.be('foo');
+                  done();
+                }
+              });
+            }
+          });
+        });
+
+        it('should support editing an element in an existing array on a record', function(done) {
+          _repo.update({
+            _id: '124',
+            arrayField: [{ id: 'foo', other: 9 }]
+          }, function(err) {
+            if (err) {
+              done(err);
+            } else {
+              _repo.getById('124', function(err, model) {
+                if (err) {
+                  done(err);
+                } else {
+                  expect(model).to.be.ok();
+                  expect(model.arrayField.length).to.be(1);
+                  expect(model.arrayField[0].other).to.be(9);
+                  done();
+                }
+              });
+            }
+          });
+        });
+      });
+
+      describe('given an existing record with a 1 element object array', function() {
+
+        before('create initial record', function(done) {
+          _repo.create({
+            _id: '125',
+            arrayField: [{ id: 'foo', other: 7 }]
+          }, function(err) {
+            if (err) {
+              done(err);
+            } else {
+              done();
+            }
+          });
+        });
+
+        it('should support removing the last element from the existing array and leave the array', function(done) {
+          _repo.update({
+            _id: '125',
+            arrayField: []
+          }, function(err) {
+            if (err) {
+              done(err);
+            } else {
+              _repo.getById('125', function(err, model) {
+                if (err) {
+                  done(err);
+                } else {
+                  expect(model).to.be.ok();
+                  expect(model.arrayField.length).to.be(0);
+                  done();
+                }
+              });
+            }
+          });
+        });
+
+        it('should support editing an element in an existing array on a record', function(done) {
+          _repo.update({
+            _id: '124',
+            arrayField: [{ id: 'foo', other: 9 }]
+          }, function(err) {
+            if (err) {
+              done(err);
+            } else {
+              _repo.getById('124', function(err, model) {
+                if (err) {
+                  done(err);
+                } else {
+                  expect(model).to.be.ok();
+                  expect(model.arrayField.length).to.be(1);
+                  expect(model.arrayField[0].other).to.be(9);
+                  done();
+                }
+              });
+            }
+          });
+        });
+      });
     });
 
     describe('#del', function() {
@@ -236,7 +490,7 @@ describe('MongoRepo', function() {
               expect(err).to.be.ok();
               expect(err).to.match(/not found/);
               expect(model).to.not.be.ok();
-              done();              
+              done();
             });
           }
         });
@@ -244,35 +498,24 @@ describe('MongoRepo', function() {
 
     });
 
-    describe('given an existing record with an object array', function() {
-      before('create initial record', function(done) {
+    describe('#delMatch', function() {
+      before('create record', function(done) {
         _repo.create({
-          _id: '124',
-          arrayField: [{ id: 'foo', other: 7 }, { id: 'bar', other: 8 }]
+          _id: 'todeletematch1',
+          field: 'first field',
+          arrayField: ['data']
         }, function(err) {
           if (err) {
             done(err);
           } else {
-            done();
-          }
-        });
-      });
-
-      it('should support removing an element from the existing array', function(done) {
-        _repo.update({
-          _id: '124',
-          arrayField: [{ id: 'foo', other: 7 }]
-        }, function(err) {
-          if (err) {
-            done(err);
-          } else {
-            _repo.getById('124', function(err, model) {
+            _repo.create({
+              _id: 'todeletematch2',
+              field: 'THE MATCH',
+              arrayField: ['data']
+            }, function(err) {
               if (err) {
                 done(err);
               } else {
-                expect(model).to.be.ok();
-                expect(model.arrayField.length).to.be(1);
-                expect(model.arrayField[0].id).to.be('foo');
                 done();
               }
             });
@@ -280,90 +523,38 @@ describe('MongoRepo', function() {
         });
       });
 
-
-      it('should support editing an element in an existing array on a record', function(done) {
-        _repo.update({
-          _id: '124',
-          arrayField: [{ id: 'foo', other: 9 }]
-        }, function(err) {
+      it('delete correct record', function(done) {
+        _repo.delMatch({
+          field: { $regex: '.*MATCH' }
+        }, function(err, res) {
           if (err) {
             done(err);
           } else {
-            _repo.getById('124', function(err, model) {
-              if (err) {
-                done(err);
-              } else {
-                expect(model).to.be.ok();
-                expect(model.arrayField.length).to.be(1);
-                expect(model.arrayField[0].other).to.be(9);
-                done();
-              }
+            expect(res).to.be.ok();
+            expect(res).to.be.an('object');
+            expect(res.ok).to.be(1);
+            expect(res.n).to.be(1);
+
+            _repo.getById('todeletematch2', function(err, model) {
+              expect(err).to.be.ok();
+              expect(err).to.match(/not found/);
+              expect(model).to.not.be.ok();
+              _repo.getById('todeletematch1', function(err, model) {
+                if (err) {
+                  done(err);
+                } else {
+                  expect(model).to.be.ok();
+                  expect(model.field).to.be('first field');
+                  done();
+                }
+              });
             });
           }
         });
       });
+
     });
 
-    describe('given an existing record with a 1 element object array', function() {
-      var _record;
-
-      before('create initial record', function(done) {
-        _repo.create({
-          _id: '125',
-          arrayField: [{ id: 'foo', other: 7 }]
-        }, function(err) {
-          if (err) {
-            done(err);
-          } else {
-            done();
-          }
-        });
-      });
-
-      it('should support removing the last element from the existing array and leave the array', function(done) {
-        _repo.update({
-          _id: '125',
-          arrayField: []
-        }, function(err) {
-          if (err) {
-            done(err);
-          } else {
-            _repo.getById('125', function(err, model) {
-              if (err) {
-                done(err);
-              } else {
-                expect(model).to.be.ok();
-                expect(model.arrayField.length).to.be(0);
-                done();
-              }
-            });
-          }
-        });
-      });
-
-
-      it('should support editing an element in an existing array on a record', function(done) {
-        _repo.update({
-          _id: '124',
-          arrayField: [{ id: 'foo', other: 9 }]
-        }, function(err) {
-          if (err) {
-            done(err);
-          } else {
-            _repo.getById('124', function(err, model) {
-              if (err) {
-                done(err);
-              } else {
-                expect(model).to.be.ok();
-                expect(model.arrayField.length).to.be(1);
-                expect(model.arrayField[0].other).to.be(9);
-                done();
-              }
-            });
-          }
-        });
-      });
-    });
   });
 
 });

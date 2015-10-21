@@ -18,8 +18,8 @@ var ModelTransformStream = require('./lib/transform-stream');
 function prepareJsonPointers(pointers) {
   if (pointers && pointers.length) {
     var res = [],
-        i = -1,
-        len = pointers.length;
+      i = -1,
+      len = pointers.length;
     while (++i < len) {
       if (typeof pointers[i] === 'string') {
         res.push(JsonPointer.create(pointers[i]));
@@ -36,7 +36,7 @@ function prepareJsonPointers(pointers) {
 function setValueForAllPointers(obj, pointers, val) {
   if (pointers && pointers.length) {
     var i = -1,
-        len = pointers.length;
+      len = pointers.length;
     while (++i < len) {
       pointers[i].set(obj, val);
     }
@@ -357,12 +357,12 @@ Object.defineProperties(MongoRepo.prototype, {
       var changes = [];
       deep.observableDiff(orig, updated,
         function(change) {
-        changes.push(change);
-      },
+          changes.push(change);
+        },
         this._filterUpdatedProperties.bind(this)
       );
       var edited, removed, pull, i = -1,
-          len = changes.length;
+        len = changes.length;
       if (len) {
         while (++i < len) {
 
@@ -561,7 +561,7 @@ Object.defineProperties(MongoRepo.prototype, {
      * @param {object} sort - A mongodb native client sort specification
      * @param {number} skip - How results to skip before returning an item
      * @param {number} limit - Limit on the total number of results to return
-     * @param {}
+     * @param {function} callback - a callback
      * @memberOf MongoRepo
      * @instance
      */
@@ -572,8 +572,8 @@ Object.defineProperties(MongoRepo.prototype, {
       assert.number(limit, 'limit');
       assert.func(callback, 'callback');
       var self = this,
-          source,
-          modelTransform;
+        source,
+        modelTransform;
       try {
         source = self._collection.find(match)
           .sort(sort)
@@ -652,57 +652,57 @@ Object.defineProperties(MongoRepo.prototype, {
     value: function batchCreate(models, callback) {
       assert.arrayOfObject(models, 'models');
       var self = this,
-          i = -1,
-          len = models.length,
-          last = len - 1,
-          count = 0,
-          invalid = [],
-          valid = [],
-          ea = function(index, model, err) {
-            if (err) {
-              invalid.push({
-                index: index,
-                model: models[index],
-                error: err
-              });
-            } else {
-              var data = self._transformModel(model);
-              data = self._beforeCreateDataModel(data);
-              if (!data._id) {
-                var id = self._dataIdFromModel(model);
-                if (id) {
-                  data._id = id;
-                }
+        i = -1,
+        len = models.length,
+        last = len - 1,
+        count = 0,
+        invalid = [],
+        valid = [],
+        ea = function(index, model, err) {
+          if (err) {
+            invalid.push({
+              index: index,
+              model: models[index],
+              error: err
+            });
+          } else {
+            var data = self._transformModel(model);
+            data = self._beforeCreateDataModel(data);
+            if (!data._id) {
+              var id = self._dataIdFromModel(model);
+              if (id) {
+                data._id = id;
               }
-              valid.push(data);
             }
-            if (++count === len) {
-              if (invalid.length) {
-                return callback(invalid);
+            valid.push(data);
+          }
+          if (++count === len) {
+            if (invalid.length) {
+              return callback(invalid);
+            }
+            self._collection.insert(valid, {
+              w: 1
+            }, function(err, res) {
+              if (err) {
+                return callback(self.translateDbError(err));
               }
-              self._collection.insert(valid, {
-                w: 1
-              }, function(err, res) {
-                if (err) {
-                  return callback(self.translateDbError(err));
-                }
-                var j = -1,
-                    jlen = res.length,
-                    model, created = [],
-                    evt = [];
-                while (++j < jlen) {
-                  model = self._transformData(res[j]);
-                  created.push(model);
-                  evt.push(new CreatedEventData(
-                    self._dataIdFromModel(model),
+              var j = -1,
+                jlen = res.length,
+                model, created = [],
+                evt = [];
+              while (++j < jlen) {
+                model = self._transformData(res[j]);
+                created.push(model);
+                evt.push(new CreatedEventData(
+                  self._dataIdFromModel(model),
                   model
-                  ));
-                }
-                self.emit('created', new BatchCreatedEventData(evt));
-                callback(null, created);
-              });
-            }
-          };
+                ));
+              }
+              self.emit('created', new BatchCreatedEventData(evt));
+              callback(null, created);
+            });
+          }
+        };
 
       while (++i < len) {
         this.validate(models[i], ea.bind(this, i, models[i]));
@@ -796,16 +796,16 @@ Object.defineProperties(MongoRepo.prototype, {
       self._collection.remove({
         _id: id
       }, {
-        w: 1
-      }, function(err, res) {
-        if (err) {
-          return callback(self.translateDbError(err));
-        }
-        if (res) {
-          self.emit('deleted', id);
-        }
-        callback(null, res);
-      });
+          w: 1
+        }, function(err, res) {
+          if (err) {
+            return callback(self.translateDbError(err));
+          }
+          if (res) {
+            self.emit('deleted', id);
+          }
+          callback(null, res);
+        });
     },
     enumerable: true
   },
@@ -834,10 +834,10 @@ Object.defineProperties(MongoRepo.prototype, {
         if (res) {
           self.emit('deleted', {
             match: match,
-            count: res
+            count: res.result.n
           });
         }
-        callback(null, res);
+        callback(null, res.result);
       });
     },
     enumerable: true
