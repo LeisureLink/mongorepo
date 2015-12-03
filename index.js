@@ -626,7 +626,7 @@ Object.defineProperties(MongoRepo.prototype, {
           if (err) {
             return callback(self.translateDbError(err));
           }
-          var result = Array.isArray(res.ops) ? res.ops[0] : res;
+          var result = Array.isArray(res) ? res[0] : Array.isArray(res.ops) ? res.ops[0] : res;
           var model = self._transformData(result);
           self.emit('created', new CreatedEventData(self._dataIdFromModel(model), model));
           callback(null, model);
