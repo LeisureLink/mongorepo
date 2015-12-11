@@ -6,7 +6,14 @@ var util = require('util')
 , uuid = require('node-uuid')
 , MongoClient = require('mongodb').MongoClient
 , MongoRepo = require('../')
+,mongohost
 ;
+
+if(process.env.NODE_ENV === 'katon') {
+  mongohost = 'mongodb://docker.dev/test';
+} else {
+  mongohost = process.env.MONGODB_TEST_URL || 'mongodb://127.0.0.1:27017/test';
+}
 
 function throwIfErrorOrFalsyResult(err, res) {
   if (err) { throw err; }
@@ -30,7 +37,6 @@ describe('MongoRepo', function () {
   before(function (done) {
     // Ensure we are connected to a db...
     //   NOTE:
-    var mongohost = process.env.MONGODB_TEST_URL || 'mongodb://127.0.0.1:27017/test';
     MongoClient.connect(mongohost, function (err, db) {
       if (err) {
         util.log("Failed to connect to the MongoDB server. These tests use the default `test` database present with a new install of MongoDB.");

@@ -1,8 +1,7 @@
 {
-  "name": "mongorepo",
-  "version": "0.2.2",
+  "name": "@leisurelink/mongorepo",
+  "version": "1.0.0",
   "description": "A simple repository over MongoDB collection",
-  "private": true,
   "main": "index.js",
   "scripts": {
     "test": "mocha -R spec"
